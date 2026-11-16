@@ -1,0 +1,1203 @@
+{
+  "generated_from": "zeek_network_transport_alerts.xlsx",
+  "rules": [
+    {
+      "rule_id": "R01",
+      "name": "Scan::Address_Scan",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 1,
+      "log_source": "conn.log",
+      "zeek_script": "policy/misc/scan.zeek",
+      "trigger_text": "Failed connections to more than 25 unique hosts on one port within 5 min",
+      "indicates": "Horizontal scan / worm-like spread",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "window_unique",
+          "filter": {
+            "proto": "tcp",
+            "conn_state": {
+              "in": [
+                "S0",
+                "REJ",
+                "RSTOS0"
+              ]
+            }
+          },
+          "group_by": [
+            "src_ip",
+            "dst_port"
+          ],
+          "unique_field": "dst_ip",
+          "window_sec": 300,
+          "threshold": 25,
+          "op": "gt",
+          "report": [
+            "src_ip",
+            "dst_port"
+          ]
+        },
+        {
+          "type": "label",
+          "labels": [
+            "Scan::Address_Scan"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R02",
+      "name": "Scan::Port_Scan",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 2,
+      "log_source": "conn.log",
+      "zeek_script": "policy/misc/scan.zeek",
+      "trigger_text": "Failed connections to 15 or more unique ports on one victim within 5 min",
+      "indicates": "Vertical scan / reconnaissance",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "window_unique",
+          "filter": {
+            "proto": "tcp",
+            "conn_state": {
+              "in": [
+                "S0",
+                "REJ",
+                "RSTOS0"
+              ]
+            }
+          },
+          "group_by": [
+            "src_ip",
+            "dst_ip"
+          ],
+          "unique_field": "dst_port",
+          "window_sec": 300,
+          "threshold": 15,
+          "op": "ge",
+          "report": [
+            "src_ip",
+            "dst_ip"
+          ]
+        },
+        {
+          "type": "label",
+          "labels": [
+            "Scan::Port_Scan"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R03",
+      "name": "Weird::Activity - fragment_overlap",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 3,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Overlapping IP fragments",
+      "indicates": "IDS evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - fragment_overlap",
+            "fragment_overlap"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R04",
+      "name": "Weird::Activity - fragment_inconsistency",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 4,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Inconsistent IP fragments",
+      "indicates": "IDS evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - fragment_inconsistency",
+            "fragment_inconsistency"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R05",
+      "name": "Weird::Activity - fragment_size_inconsistency",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 5,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Fragment sizes are inconsistent",
+      "indicates": "IDS evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - fragment_size_inconsistency",
+            "fragment_size_inconsistency"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R06",
+      "name": "Weird::Activity - fragment_protocol_inconsistency",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 6,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Fragments disagree on protocol",
+      "indicates": "IDS evasion",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - fragment_protocol_inconsistency",
+            "fragment_protocol_inconsistency"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R07",
+      "name": "Conn::Retransmission_Inconsistency",
+      "severity": "CRITICAL",
+      "origin": "excel",
+      "excel_no": 7,
+      "log_source": "conn.log / weird.log",
+      "zeek_script": "policy/protocols/conn/weirds.zeek",
+      "trigger_text": "TCP retransmission carries different data from the original segment; or conn.log history contains 'r' (responder retransmission)",
+      "indicates": "Evasion or injection",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Conn::Retransmission_Inconsistency",
+            "retransmission_inconsistency"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": "tcp",
+            "history": {
+              "contains": "r"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R08",
+      "name": "Weird::Activity - FIN_storm",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 8,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Excessive burst of FINs from one originator",
+      "indicates": "DoS or stealth scan",
+      "default_behavior": "Notice per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - FIN_storm",
+            "FIN_storm"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R09",
+      "name": "Weird::Activity - SYN_after_partial",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 9,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "SYN arrives on a connection already in a partial state",
+      "indicates": "Crafted traffic or evasion",
+      "default_behavior": "Notice per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - SYN_after_partial",
+            "SYN_after_partial"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R10",
+      "name": "Weird::Activity - TCP_christmas",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 10,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Packet with FIN+URG+PUSH flags set",
+      "indicates": "Xmas scan",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - TCP_christmas",
+            "TCP_christmas"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": "tcp",
+            "tcp_flags": {
+              "has_all": "FUP"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R11",
+      "name": "Weird::Activity - SYN_with_data",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 11,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Data carried in a SYN packet",
+      "indicates": "Non-standard (unless TCP Fast Open); crafted packets",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - SYN_with_data",
+            "SYN_with_data"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R12",
+      "name": "Weird::Activity - RST_storm",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 12,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Flood of resets",
+      "indicates": "RST injection or DoS",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - RST_storm",
+            "RST_storm"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R13",
+      "name": "Conn::Content_Gap",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 13,
+      "log_source": "conn.log / weird.log",
+      "zeek_script": "policy/protocols/conn/weirds.zeek",
+      "trigger_text": "Sequence hole in the data stream; or conn.log history contains 'c' (bad checksum/sequence hole gap)",
+      "indicates": "Packet loss, or deliberate filtering/evasion",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Conn::Content_Gap",
+            "content_gap"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": "tcp",
+            "history": {
+              "contains": "c"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R14",
+      "name": "Traceroute::Detected",
+      "severity": "HIGH",
+      "origin": "excel",
+      "excel_no": 14,
+      "log_source": "icmp / traceroute.log",
+      "zeek_script": "policy/misc/detect-traceroute/main.zeek",
+      "trigger_text": "Low-TTL packets (TTL < 10) plus 3 or more ICMP Time Exceeded messages for a src-dst pair within 3 min",
+      "indicates": "Network mapping",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "window_combo",
+          "window_sec": 180,
+          "components": [
+            {
+              "filter": {
+                "ttl": {
+                  "lt": 10
+                }
+              },
+              "key_fields": [
+                "src_ip"
+              ],
+              "key_as": [
+                "src_ip"
+              ],
+              "min_count": 1
+            },
+            {
+              "filter": {
+                "proto": [
+                  "icmp",
+                  "icmp6",
+                  "icmpv6"
+                ],
+                "icmp_type": {
+                  "in": [
+                    11,
+                    3
+                  ]
+                }
+              },
+              "key_fields": [
+                "dst_ip"
+              ],
+              "key_as": [
+                "src_ip"
+              ],
+              "min_count": 3
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "labels": [
+            "Traceroute::Detected"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R15",
+      "name": "Weird::Activity - connection_originator_SYN_ack",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 15,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Originator sent a SYN-ACK",
+      "indicates": "Inverted roles; spoofing or scan artifact",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - connection_originator_SYN_ack",
+            "connection_originator_SYN_ack"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R16",
+      "name": "Weird::Activity - repeated_SYN_with_ack",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 16,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Repeated SYN with ACK",
+      "indicates": "Abnormal handshake",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - repeated_SYN_with_ack",
+            "repeated_SYN_with_ack"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R17",
+      "name": "Weird::Activity - repeated_SYN_reply_wo_ack",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 17,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Repeated SYN reply without ACK",
+      "indicates": "Abnormal handshake",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - repeated_SYN_reply_wo_ack",
+            "repeated_SYN_reply_wo_ack"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R18",
+      "name": "Weird::Activity - active_connection_reuse",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 18,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "4-tuple reused while connection is active",
+      "indicates": "Spoofing or port-exhaustion attack",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - active_connection_reuse",
+            "active_connection_reuse"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R19",
+      "name": "Weird::Activity - premature_connection_reuse",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 19,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "4-tuple reused too soon",
+      "indicates": "Spoofing or port-exhaustion attack",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - premature_connection_reuse",
+            "premature_connection_reuse"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R20",
+      "name": "Weird::Activity - data_before_established",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 20,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Data sent before TCP handshake completes",
+      "indicates": "Crafted traffic",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - data_before_established",
+            "data_before_established"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R21",
+      "name": "Weird::Activity - inappropriate_FIN",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 21,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "FIN at an inappropriate point in the TCP state machine",
+      "indicates": "Crafted packets",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - inappropriate_FIN",
+            "inappropriate_FIN"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R22",
+      "name": "Weird::Activity - window_recision",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 22,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "TCP window recision",
+      "indicates": "TCP state anomaly",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - window_recision",
+            "window_recision"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R23",
+      "name": "Weird::Activity - SYN_seq_jump",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 23,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Sequence number jump on SYN",
+      "indicates": "TCP state anomaly",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - SYN_seq_jump",
+            "SYN_seq_jump"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R24",
+      "name": "Weird::Activity - fragment_with_DF",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 24,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Fragmented packet with Don't-Fragment bit set",
+      "indicates": "Crafted or malformed packets",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - fragment_with_DF",
+            "fragment_with_DF"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R25",
+      "name": "Weird::Activity - truncated_IP",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 25,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Malformed or truncated IP header",
+      "indicates": "Malformed packets",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - truncated_IP",
+            "truncated_IP"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R26",
+      "name": "DPD::Protocol_Found",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 26,
+      "log_source": "dpd.log",
+      "zeek_script": "policy/frameworks/dpd/detect-protocols.zeek",
+      "trigger_text": "Protocol detected on a non-standard port",
+      "indicates": "Tunneling or C2 on odd ports",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "DPD::Protocol_Found",
+            "ProtocolDetector::Protocol_Found"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R27",
+      "name": "DPD::Server_Found",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 27,
+      "log_source": "dpd.log",
+      "zeek_script": "policy/frameworks/dpd/detect-protocols.zeek",
+      "trigger_text": "Server detected on a non-standard port",
+      "indicates": "Tunneling or C2 on odd ports",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "DPD::Server_Found",
+            "ProtocolDetector::Server_Found"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R28",
+      "name": "Tunnel activity (no notice type)",
+      "severity": "MEDIUM",
+      "origin": "excel",
+      "excel_no": 28,
+      "log_source": "tunnel.log",
+      "zeek_script": "base/frameworks/tunnels",
+      "trigger_text": "Teredo, GRE, IP-in-IP, AYIYA or VXLAN tunnels seen",
+      "indicates": "Can bypass perimeter controls",
+      "default_behavior": "Log only",
+      "detectors": [
+        {
+          "type": "log_source",
+          "sources": [
+            "tunnel"
+          ]
+        },
+        {
+          "type": "label",
+          "labels": [
+            "Tunnel activity"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R29",
+      "name": "CaptureLoss::Too_Much_Loss",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 29,
+      "log_source": "capture_loss.log",
+      "zeek_script": "policy/misc/capture-loss.zeek",
+      "trigger_text": "More than 10% packet loss (too_much_loss = 0.1)",
+      "indicates": "Detections may be blind; sensor health",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "match",
+          "filter": {
+            "log_source": "capture_loss",
+            "percent_lost": {
+              "gt": 10
+            }
+          }
+        },
+        {
+          "type": "label",
+          "labels": [
+            "CaptureLoss::Too_Much_Loss"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R30",
+      "name": "CaptureLoss::Too_Little_Traffic",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 30,
+      "log_source": "capture_loss.log",
+      "zeek_script": "policy/misc/capture-loss.zeek",
+      "trigger_text": "Fewer ACKs than minimum_acks in a watch interval",
+      "indicates": "Tap or span port may be down",
+      "default_behavior": "Notice (when script loaded)",
+      "detectors": [
+        {
+          "type": "match",
+          "filter": {
+            "log_source": "capture_loss",
+            "acks": {
+              "lt": 1
+            }
+          }
+        },
+        {
+          "type": "label",
+          "labels": [
+            "CaptureLoss::Too_Little_Traffic"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R31",
+      "name": "Weird::Activity - bad_IP_checksum",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 31,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "IP checksum error",
+      "indicates": "Usually NIC offload noise; possible evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - bad_IP_checksum",
+            "bad_IP_checksum"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "ip_checksum_valid": false
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R32",
+      "name": "Weird::Activity - bad_TCP_checksum",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 32,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "TCP checksum error",
+      "indicates": "Usually NIC offload noise; possible evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - bad_TCP_checksum",
+            "bad_TCP_checksum"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": "tcp",
+            "checksum_valid": false
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R33",
+      "name": "Weird::Activity - bad_UDP_checksum",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 33,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "UDP checksum error",
+      "indicates": "Usually NIC offload noise; possible evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - bad_UDP_checksum",
+            "bad_UDP_checksum"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": "udp",
+            "checksum_valid": false
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R34",
+      "name": "Weird::Activity - bad_ICMP_checksum",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 34,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "ICMP checksum error",
+      "indicates": "Usually NIC offload noise; possible evasion",
+      "default_behavior": "Log per originator",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - bad_ICMP_checksum",
+            "bad_ICMP_checksum"
+          ]
+        },
+        {
+          "type": "match",
+          "filter": {
+            "proto": [
+              "icmp",
+              "icmp6",
+              "icmpv6"
+            ],
+            "checksum_valid": false
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "R35",
+      "name": "Weird::Activity - possible_split_routing",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 35,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Only one direction of a connection seen",
+      "indicates": "Usually asymmetric routing or capture issue",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - possible_split_routing",
+            "possible_split_routing"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R36",
+      "name": "Weird::Activity - above_hole_data_without_any_acks",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 36,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Data above a sequence hole with no ACKs",
+      "indicates": "Usually asymmetric routing or capture issue",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - above_hole_data_without_any_acks",
+            "above_hole_data_without_any_acks"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R37",
+      "name": "Weird::Activity - excessive_data_without_further_acks",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 37,
+      "log_source": "weird.log",
+      "zeek_script": "base/frameworks/notice/weird.zeek",
+      "trigger_text": "Excessive data with no further ACKs",
+      "indicates": "Usually asymmetric routing or capture issue",
+      "default_behavior": "Log",
+      "detectors": [
+        {
+          "type": "label",
+          "labels": [
+            "Weird::Activity - excessive_data_without_further_acks",
+            "excessive_data_without_further_acks"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "R38",
+      "name": "New host / new service (no notice type)",
+      "severity": "LOW",
+      "origin": "excel",
+      "excel_no": 38,
+      "log_source": "known_hosts.log / known_services.log",
+      "zeek_script": "policy/protocols/conn/known-hosts.zeek, known-services.zeek",
+      "trigger_text": "A new device or listening port appears",
+      "indicates": "Asset drift; rogue device detection",
+      "default_behavior": "Log only",
+      "detectors": [
+        {
+          "type": "log_source",
+          "sources": [
+            "known_hosts",
+            "known_services"
+          ]
+        },
+        {
+          "type": "label",
+          "labels": [
+            "New host / new service"
+          ]
+        }
+      ]
+    },
+    {
+      "rule_id": "S01",
+      "name": "SYN flood",
+      "severity": "HIGH",
+      "trigger_text": "100 or more SYN-only connection attempts from one source to one destination port within 10 s",
+      "indicates": "Denial of service by SYN flooding",
+      "detectors": [
+        {
+          "type": "window_combo",
+          "window_sec": 10,
+          "components": [
+            {
+              "filter": {
+                "proto": "tcp",
+                "tcp_flags": {
+                  "equals_any": [
+                    "S"
+                  ]
+                }
+              },
+              "key_fields": [
+                "src_ip",
+                "dst_ip",
+                "dst_port"
+              ],
+              "min_count": 100
+            }
+          ]
+        },
+        {
+          "type": "window_combo",
+          "window_sec": 10,
+          "components": [
+            {
+              "filter": {
+                "proto": "tcp",
+                "conn_state": "S0"
+              },
+              "key_fields": [
+                "src_ip",
+                "dst_ip",
+                "dst_port"
+              ],
+              "min_count": 100
+            }
+          ]
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S02",
+      "name": "ICMP sweep",
+      "severity": "MEDIUM",
+      "trigger_text": "ICMP echo requests from one source to 10 or more unique hosts within 60 s",
+      "indicates": "Host discovery / network mapping",
+      "detectors": [
+        {
+          "type": "window_unique",
+          "filter": {
+            "proto": [
+              "icmp",
+              "icmp6",
+              "icmpv6"
+            ],
+            "icmp_type": {
+              "in": [
+                8,
+                128
+              ],
+              "or_missing": true
+            }
+          },
+          "group_by": [
+            "src_ip"
+          ],
+          "unique_field": "dst_ip",
+          "window_sec": 60,
+          "threshold": 10,
+          "op": "ge"
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S03",
+      "name": "ICMP ping flood",
+      "severity": "HIGH",
+      "trigger_text": "100 or more ICMP echo requests from one source to one destination within 10 s",
+      "indicates": "ICMP denial of service",
+      "detectors": [
+        {
+          "type": "window_combo",
+          "window_sec": 10,
+          "components": [
+            {
+              "filter": {
+                "proto": [
+                  "icmp",
+                  "icmp6",
+                  "icmpv6"
+                ],
+                "icmp_type": {
+                  "in": [
+                    8,
+                    128
+                  ],
+                  "or_missing": true
+                }
+              },
+              "key_fields": [
+                "src_ip",
+                "dst_ip"
+              ],
+              "min_count": 100
+            }
+          ]
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S04",
+      "name": "Abnormal TCP flag pattern",
+      "severity": "HIGH",
+      "trigger_text": "TCP packet with NULL flags, SYN+FIN or SYN+RST (Xmas is covered by the Excel rule R10)",
+      "indicates": "Stealth scan or crafted packets. Only valid if tcp_flags are per-packet, not a union over the connection",
+      "detectors": [
+        {
+          "type": "match",
+          "filter": {
+            "proto": "tcp",
+            "tcp_flags": {
+              "equals_any": [
+                "NONE",
+                "SF",
+                "SR"
+              ]
+            }
+          }
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S05",
+      "name": "Weak or outdated TLS version",
+      "severity": "MEDIUM",
+      "trigger_text": "TLS/SSL handshake using SSLv2, SSLv3, TLSv1.0 or TLSv1.1",
+      "indicates": "Deprecated protocol version, downgrade or legacy client/server",
+      "detectors": [
+        {
+          "type": "match",
+          "filter": {
+            "tls_version": {
+              "in": [
+                "SSLv2",
+                "SSLv3",
+                "TLSv1.0",
+                "TLSv1.1"
+              ]
+            }
+          }
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S06",
+      "name": "Blacklisted IP address",
+      "severity": "HIGH",
+      "trigger_text": "Source or destination IPv4/IPv6 address is in the blacklist",
+      "indicates": "Communication with a known-bad host",
+      "detectors": [
+        {
+          "type": "blacklist"
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    },
+    {
+      "rule_id": "S07",
+      "name": "High Volume / DoS Traffic Anomaly",
+      "severity": "HIGH",
+      "trigger_text": "Originator transmits abnormally high volume (> 50,000 bytes or > 1,000 packets) with 0 response bytes or unestablished connection",
+      "indicates": "Data exfiltration attempt, UDP/TCP flood, or amplification denial of service",
+      "detectors": [
+        {
+          "type": "match",
+          "filter": {
+            "orig_bytes": {
+              "gt": 50000
+            },
+            "resp_bytes": {
+              "eq": 0
+            }
+          }
+        },
+        {
+          "type": "match",
+          "filter": {
+            "orig_pkts": {
+              "gt": 1000
+            },
+            "resp_pkts": {
+              "eq": 0
+            }
+          }
+        }
+      ],
+      "origin": "supplementary",
+      "log_source": "(not in Excel)",
+      "note": "PROPOSED DEFAULT - not in the Excel sheet; confirm with team"
+    }
+  ]
+}
