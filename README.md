@@ -269,4 +269,3 @@ All authenticated requests require a Bearer token: `Authorization: Bearer <token
 ### Deferred for Future Native Verification
 1. **E1 Java Maven Compilation:** Maven compilation and execution of E1 JUnit test suite is deferred per current execution constraints.
 2. **E1 Native Subprocess Execution:** `E1CliRunner.java` is implemented and verified by code inspection. End-to-end execution with the real Java binary will occur once E1 is compiled via `mvn compile` or `mvn package`.
-
