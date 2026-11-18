@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E1BenchmarkMetrics",
+  "description": "Schema for benchmark performance results output by E1.",
+  "type": "object",
+  "required": [
+    "record_count",
+    "worker_count",
+    "sequential_duration_ms",
+    "multithreaded_duration_ms",
+    "sequential_throughput",
+    "multithreaded_throughput",
+    "output_parity"
+  ],
+  "properties": {
+    "record_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of network events in the benchmark dataset"
+    },
+    "worker_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "description": "Number of concurrent worker threads used for multithreaded run"
+    },
+    "sequential_duration_ms": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Median execution duration in milliseconds for sequential processing"
+    },
+    "multithreaded_duration_ms": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Median execution duration in milliseconds for multithreaded processing"
+    },
+    "sequential_throughput": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Sequential throughput in records per second"
+    },
+    "multithreaded_throughput": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Multithreaded throughput in records per second"
+    },
+    "speedup": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "description": "Speedup ratio (sequential_duration / multithreaded_duration)"
+    },
+    "sequential_cpu_load": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "description": "Sequential process CPU usage percentage"
+    },
+    "multithreaded_cpu_load": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "description": "Multithreaded process CPU usage percentage"
+    },
+    "sequential_observed_heap_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Sequential observed JVM heap memory occupancy in bytes"
+    },
+    "multithreaded_observed_heap_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Multithreaded observed JVM heap memory occupancy in bytes"
+    },
+    "output_parity": {
+      "type": "boolean",
+      "description": "True if sequential and multithreaded outputs are 100% identical and in deterministic order"
+    }
+  }
+}

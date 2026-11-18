@@ -1,0 +1,63 @@
+# =============================================================================
+# Network Traffic Monitoring Alert System - .gitignore
+# =============================================================================
+
+# --- Build outputs ---
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+
+# --- Maven Wrapper downloaded distribution ---
+.mvn/wrapper/maven-wrapper.jar
+
+# --- IDE files ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+*~
+
+# --- OS files ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Dataset files (large, downloaded separately) ---
+# Real Zeek log files (can be 100s of MB)
+data/real/**/*.log
+data/real/**/*.log.gz
+data/real/**/*.txt
+
+# Ground truth datasets
+data/ground-truth/*.log
+data/ground-truth/*.log.gz
+data/ground-truth/*.txt
+
+# Generated performance test datasets
+data/generated/**/*.log
+data/generated/**/*.log.gz
+data/generated/**/*.txt
+
+# Test data fixtures placed manually
+data/test/**/*.log
+data/test/**/*.log.gz
+data/test/**/*.txt
+
+# --- Logs and temp files ---
+logs/
+*.log
+!data/**/.gitkeep
+
+# --- Environment and secrets ---
+.env
+*.env
+application-local.properties
