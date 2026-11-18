@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E1ProcessedEvent",
+  "description": "Schema for a single processed and enriched network event produced by E1 in JSON or NDJSON stream.",
+  "type": "object",
+  "required": [
+    "record_ordinal",
+    "timestamp",
+    "uid",
+    "source_ip",
+    "destination_ip"
+  ],
+  "properties": {
+    "record_ordinal": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0-based monotonic index of the data record in the stream"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of the connection"
+    },
+    "uid": {
+      "type": "string",
+      "description": "Zeek unique connection identifier"
+    },
+    "source_ip": {
+      "type": "string",
+      "description": "Originator IP address (IPv4 or IPv6)"
+    },
+    "source_port": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "Originator TCP/UDP port (null for ICMP)"
+    },
+    "destination_ip": {
+      "type": "string",
+      "description": "Responder IP address (IPv4 or IPv6)"
+    },
+    "destination_port": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "Responder TCP/UDP port (null for ICMP)"
+    },
+    "protocol": {
+      "type": "string",
+      "enum": ["tcp", "udp", "icmp"],
+      "description": "Transport protocol name (lowercase)"
+    },
+    "service": {
+      "type": ["string", "null"],
+      "description": "Application protocol detected by Zeek (e.g. http, ssl, dns)"
+    },
+    "duration": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "description": "Connection duration in seconds"
+    },
+    "orig_bytes": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Originator payload bytes"
+    },
+    "resp_bytes": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Responder payload bytes"
+    },
+    "conn_state": {
+      "type": "string",
+      "description": "Zeek connection state string (SF, S0, REJ, etc.)"
+    },
+    "history": {
+      "type": ["string", "null"],
+      "description": "TCP state history flags"
+    },
+    "orig_pkts": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Originator packet count"
+    },
+    "resp_pkts": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Responder packet count"
+    },
+    "total_bytes": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "E1 enriched: sum of orig_bytes and resp_bytes"
+    },
+    "total_packets": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "E1 enriched: sum of orig_pkts and resp_pkts"
+    },
+    "bytes_per_packet": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "description": "E1 enriched: total_bytes / total_packets"
+    },
+    "orig_to_resp_ratio": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "description": "E1 enriched: orig_bytes / resp_bytes"
+    }
+  }
+}
